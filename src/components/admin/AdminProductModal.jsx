@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { adminAddProducts, adminModifyProduct } from "../../connection/connection";
+import { adminAddProducts, adminModifyProduct, adminUploadImage } from "../../connection/connection";
 import { alertError } from "../../tools/sweetAlert";
-import { Value } from "sass";
 const defaultData = {
   title: "", //商品名稱
   category: "", //商品種類
@@ -12,15 +11,19 @@ const defaultData = {
   content: "", // 商品描述
   is_enabled: 1, // 是否啟用
   imageUrl: "", // 商品圖片網址
+  star: '',
   imagesUrl: [''],
 }
 export default function AdminProductModal({ closeProductModal, modalRef, getProducts, mode, tempProduct }) {
-  const [tempData, setTempData] = useState(defaultData);
+  const [tempData, setTempData] = useState({...defaultData});
   useEffect(() => {
     if (mode === 'create') {
-      setTempData(defaultData);
+      setTempData({
+        ...defaultData,
+        imagesUrl: [''],
+      });
     } else if (mode === 'edit') {
-      setTempData(tempProduct);
+      setTempData({...tempProduct});
     }
   }, [mode, tempProduct])
 
@@ -44,7 +47,8 @@ export default function AdminProductModal({ closeProductModal, modalRef, getProd
     }
   }
 
-  const submit = async () => {
+  const submit = async (e) => {
+    e.preventDefault();
     try {
       if (mode === 'create') {
         await adminAddProducts({
@@ -90,6 +94,20 @@ export default function AdminProductModal({ closeProductModal, modalRef, getProd
     })
   }
 
+  const uploadFile = async (file) => {
+    const formData = new FormData();
+    formData.append('file-to-upload', file); // 表單欄位名稱，表單的值
+    try {
+      const res = await adminUploadImage(formData);
+      setTempData({
+        ...tempData,
+        imageUrl: res.data.imageUrl,
+      })
+    } catch(error) {
+      alertError(error.response.data.message);
+    }
+  }
+
   return (
     <div
       ref={modalRef}
@@ -99,7 +117,8 @@ export default function AdminProductModal({ closeProductModal, modalRef, getProd
       aria-hidden='true'
     >
       <div className='modal-dialog modal-lg'>
-        <div className='modal-content'>
+        <form className='modal-content'
+          onSubmit={(e) => submit(e)}>
           <div className='modal-header'>
             <h1 className='modal-title fs-5' id='exampleModalLabel'>
               { mode === 'create' ? '建立新商品' : `編輯: ${tempProduct.title}` }
@@ -127,6 +146,15 @@ export default function AdminProductModal({ closeProductModal, modalRef, getProd
                       onChange={handleInputChange}
                     />
                   </label>
+                  <div className="mb-3">
+                    <label htmlFor="formFile" className="form-label">
+                      或上傳檔案
+                    </label>
+                    <input type="file"
+                      id="formFile"
+                      onChange={e => uploadFile(e.target.files[0])}
+                      className="form-control" />
+                  </div>
                   {
                     tempData.imageUrl && (
                       <img src={tempData.imageUrl}
@@ -239,6 +267,7 @@ export default function AdminProductModal({ closeProductModal, modalRef, getProd
                         type='number'
                         id='origin_price'
                         name='origin_price'
+                        min={0}
                         placeholder='請輸入原價'
                         className='form-control'
                         value={tempData.origin_price}
@@ -253,12 +282,28 @@ export default function AdminProductModal({ closeProductModal, modalRef, getProd
                         type='number'
                         id='price'
                         name='price'
+                        min={0}
                         placeholder='請輸入售價'
                         className='form-control'
                         value={tempData.price}
                         onChange={handleInputChange}
                       />
                     </label>
+                  </div>             
+                  <div className='form-group mb-2 col-md-6'>
+                    <label className='w-100' htmlFor='star'>
+                      商品星級
+                    </label>
+                    <select name="star" id="" className="form-select"
+                      value={tempData.star}
+                      onChange={handleInputChange}>
+                      <option value="" disabled>-- 請選擇星級 --</option>
+                      {
+                        [3, 4, 5].map(star => {
+                          return <option value={star} key={star}>{star}</option>
+                        })
+                      }
+                    </select>
                   </div>
                 </div>
                 <hr />
@@ -317,12 +362,11 @@ export default function AdminProductModal({ closeProductModal, modalRef, getProd
               onClick={closeProductModal}>
               關閉
             </button>
-            <button type='button' className='btn btn-primary'
-              onClick={submit}>
+            <button type='submit' className='btn btn-primary'>
               儲存
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
