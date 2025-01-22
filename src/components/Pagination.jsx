@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 export default function Pagination({ pagination, changePage }) {
   return (
     <nav aria-label="Page navigation example">
@@ -43,4 +44,9 @@ export default function Pagination({ pagination, changePage }) {
       </ul>
     </nav>
   )
+}
+
+Pagination.propTypes = {
+  pagination: PropTypes.object,
+  changePage: PropTypes.func,
 }

@@ -1,4 +1,5 @@
 import ReactLoading from 'react-loading';
+import PropTypes from "prop-types";
 export default function TheLoader({ type, color, isLoading }) {
   return (
     isLoading && (
@@ -10,4 +11,10 @@ export default function TheLoader({ type, color, isLoading }) {
       </div>
     )
   )
+}
+
+TheLoader.propTypes = {
+  type: PropTypes.string,
+  color: PropTypes.string,
+  isLoading: PropTypes.bool,
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { adminAddProducts, adminModifyProduct, adminUploadImage } from "../../connection/connection";
 import { alertError } from "../../tools/sweetAlert";
+import PropTypes from "prop-types";
 const defaultData = {
   title: "", //商品名稱
   category: "", //商品種類
@@ -371,3 +372,13 @@ export default function AdminProductModal({ closeProductModal, modalRef, getProd
     </div>
   );
 }
+
+AdminProductModal.propTypes = {
+  closeProductModal: PropTypes.func,
+  modalRef: PropTypes.object,
+  getProducts: PropTypes.func,
+  mode: PropTypes.string,
+  tempProduct: PropTypes.object,
+}
+
+
